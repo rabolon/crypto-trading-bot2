@@ -6,7 +6,7 @@ let tickQty = 0;
 let sellQty = 0;
 let buyQty = 0;
 
-const run = () => {
+async function run() {
   const config = {
     symbol: 'BTCUSDT',
     asset: 'BTC',
@@ -15,9 +15,11 @@ const run = () => {
     spread: 0.0015,
     tickInterval: 60000,
   }
+  await api.cancelAllOpenOrders(config.symbol, null);
+  process.exit(0);
 
-  tick(config);
-  setInterval(tick, config.tickInterval, config);
+  await tick(config);
+  await setInterval(tick, config.tickInterval, config);
 };
 
 const tick = async (config) => {
@@ -26,29 +28,23 @@ const tick = async (config) => {
   tickQty++;
   console.log(`# ${tickQty} ${Date().toString()} Maket: ${symbol}`);
 
-  if (tickQty !== 1) {
-    // Search open orders
-    const orders = await api.currentOpenOrders(symbol, null);
-    if (!orders.length) {
-      console.log('There are not open orders');
-      sellQty--;
-      buyQty--;
-    }
-    else {
-      //console.log('Orders: ', orders);
-      console.log(`Cancel ${orders.length} open orders`);
-      orders.forEach(order => {
-        console.log(`Order: ${order.orderId} Market: ${order.symbol} Side: ${order.side}`);
-        if (order.side === 'SELL') sellQty--;
-        else buyQty--;
-      });
-      //Cancela órdenes abiertas      
-      await api.cancelAllOpenOrders(symbol, null);
-    };
-  } else {
-    // 
-    await api.cancelAllOpenOrders(symbol, null);
+
+  // Search open orders
+  const orders = await api.currentOpenOrders(symbol, null);
+  if (!orders.length) {
+    console.log('There are not open orders');
   }
+  else {
+    //console.log('Orders: ', orders);
+    console.log(`Cancel ${orders.length} open orders`);
+    orders.forEach(order => {
+      console.log(`Order: ${order.orderId} Market: ${order.symbol} Side: ${order.side}`);
+      if (order.side === 'SELL') sellQty--;
+      else buyQty--;
+    });
+    //Cancela órdenes abiertas      
+    await api.cancelAllOpenOrders(symbol, null);
+  };
 
 
   const marketPrice = await api.averagePrice(symbol);

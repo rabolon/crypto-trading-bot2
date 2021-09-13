@@ -100,6 +100,7 @@ function cancelAllOpenOrders(symbol, recvWindow) {
     recvWindow: recvWindow,
   };
   deleteArguments(data);
+  console.log(data);
   return privateCall('/v3/openOrders', data, 'DELETE');
 }
 

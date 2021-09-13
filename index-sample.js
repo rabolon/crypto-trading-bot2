@@ -19,14 +19,17 @@ async function run() {
   // result = await api.cancelOrder('BTCUSDT', 897822, null);
   // console.log(result);
 
+  result = await api.cancelAllOpenOrders('BTCUSDT', null);
+  console.log(result);
+
   // result = await api.exchangeInfo('BTCUSDT');
   // console.log('exchange info ', result);
 
   // result = await api.checkServerTime();
   // console.log(result.serverTime);
 
-  result = await api.orderBook('BTCUSDT', 5);
-  console.log('depth ', result);
+  // result = await api.orderBook('BTCUSDT', 5);
+  // console.log('depth ', result);
 
   // result = await api.accountInformation(null);
   // console.log(result);
@@ -40,14 +43,14 @@ async function run() {
   // result = await api.queryOrder('BTCUSDT', 897822, null, null);
   // console.log(result);
 
-  result = await api.averagePrice('BTCUSDT');
-  console.log('average price ', result);
+  // result = await api.averagePrice('BTCUSDT');
+  // console.log('average price ', result);
 
-  result = await api.candleStickData('BTCUSDT', '1m', null, null, 1);
-  console.log('candlestick ', result);
+  // result = await api.candleStickData('BTCUSDT', '1m', null, null, 1);
+  // console.log('candlestick ', result);
 
-  result = await api.tickerPrice('BTCUSDT');
-  console.log('tick price ',result.lastPrice);  
+  // result = await api.tickerPrice('BTCUSDT');
+  // console.log('tick price ',result.lastPrice);  
 
 }
 
