@@ -94,7 +94,7 @@ function cancelOrder(symbol, orderId, recvWindow) {
 
 //------------------------------------------------------------------------
 
-function cancelAllOpenOrders(symbol, recvWindow) {
+function cancelAllOpenOrders(symbol, recvWindow) {  // attention: sometimes do not function 
   data = {
     symbol: symbol,   // mandatory
     recvWindow: recvWindow,

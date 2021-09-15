@@ -15,9 +15,8 @@ async function run() {
     spread: 0.0015,
     tickInterval: 60000,
   }
-  await api.cancelAllOpenOrders(config.symbol, null);
-  process.exit(0);
 
+  //await api.cancelAllOpenOrders(config.symbol, null);
   await tick(config);
   await setInterval(tick, config.tickInterval, config);
 };
@@ -26,7 +25,7 @@ const tick = async (config) => {
   const { symbol, asset, base, allocation, spread } = config;
   console.log('----------------------------------------------------------------------------------------------');
   tickQty++;
-  console.log(`# ${tickQty} ${Date().toString()} Maket: ${symbol}`);
+  console.log(`# ${tickQty} ${Date().toString()} Market: ${symbol}`);
 
 
   // Search open orders
@@ -37,18 +36,19 @@ const tick = async (config) => {
   else {
     //console.log('Orders: ', orders);
     console.log(`Cancel ${orders.length} open orders`);
-    orders.forEach(order => {
+    orders.forEach(async function (order) {
       console.log(`Order: ${order.orderId} Market: ${order.symbol} Side: ${order.side}`);
-      if (order.side === 'SELL') sellQty--;
-      else buyQty--;
+      await api.cancelOrder(symbol, order.orderId, null);
+      if (tickQty !== 1) {
+        if (order.side === 'SELL') sellQty--;
+        else buyQty--;
+      }
     });
-    //Cancela órdenes abiertas      
-    await api.cancelAllOpenOrders(symbol, null);
   };
 
-
   const marketPrice = await api.averagePrice(symbol);
-  console.log(`Precio de mercado: ${marketPrice.price}`);
+
+  console.log(`Market price: ${parseFloat(marketPrice.price).toFixed(2)}`);
 
   const sellPrice = (marketPrice.price * (1 + spread)).toFixed(2);
   const buyPrice = (marketPrice.price * (1 - spread)).toFixed(2);
@@ -56,17 +56,16 @@ const tick = async (config) => {
   const account = await api.accountInformation(null);
   const assetBalance = account.balances.find(element => element.asset === asset).free;
   const baseBalance = account.balances.find(element => element.asset === base).free;
-  console.log(`Balance asset/base: ${assetBalance} / ${baseBalance}, Sells: ${sellQty}, Buys: ${buyQty}`);
+  console.log(`Balance asset/base: ${parseFloat(assetBalance).toFixed(7)} / ${parseFloat(baseBalance).toFixed(2)}, Sells: ${sellQty}, Buys: ${buyQty}`);
 
   const sellVolume = allocation;
   const buyVolume = allocation;
 
-  console.log(`New tick for ${symbol}...`);
   const sellOrder = await api.newOrder(symbol, sellVolume, sellPrice, 'SELL', 'LIMIT', 'GTC');
-  console.log(`Limit sell order ${sellVolume} @ ${sellPrice}, Id: ${sellOrder.orderId}, Notional value = ${sellVolume * sellPrice}`);
+  console.log(`Limit sell order ${sellVolume} @ ${sellPrice}, Id: ${sellOrder.orderId}, Notional value = ${(sellVolume * sellPrice).toFixed(2)}`);
   sellQty++;
   const buyOrder = await api.newOrder(symbol, buyVolume, buyPrice, 'BUY', 'LIMIT', 'GTC');
-  console.log(`Limit buy order ${buyVolume} @ ${buyPrice}, Id: ${buyOrder.orderId}, Notional value = ${buyVolume * buyPrice}`);
+  console.log(`Limit buy order ${buyVolume} @ ${buyPrice}, Id: ${buyOrder.orderId}, Notional value = ${(buyVolume * buyPrice).toFixed(2)}`);
   buyQty++;
 
 };
