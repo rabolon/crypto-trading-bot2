@@ -19,8 +19,8 @@ async function run() {
   // result = await api.cancelOrder('BTCUSDT', 897822, null);
   // console.log(result);
 
-  result = await api.cancelAllOpenOrders('BTCUSDT', null);
-  console.log(result);
+  // result = await api.cancelAllOpenOrders('BTCUSDT', null);
+  // console.log(result);
 
   // result = await api.exchangeInfo('BTCUSDT');
   // console.log('exchange info ', result);

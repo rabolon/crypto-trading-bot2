@@ -1,3 +1,5 @@
+// change management cancelled orders in order to co-live several bots.
+
 const axios = require('axios');
 const api = require('./api');
 
@@ -8,6 +10,8 @@ let buyQty = 0;
 let assetInit = 0;
 let baseInit = 0;
 let profit = 0;
+let orderIdSell = '';
+let orderIdBuy = '';
 
 async function run() {
   const config = {
@@ -31,24 +35,27 @@ const tick = async (config) => {
   tickQty++;
   console.log(`# ${tickQty} ${Date().toString()}`);
 
-
-  // Search open orders
-  const orders = await api.currentOpenOrders(symbol, null);
-  if (!orders.length) {
-    console.log('There are not open orders');
+  if (orderIdSell !== '') {
+    const sellOrderStatus = await api.queryOrder(symbol, orderIdSell, null, null);
+    if (sellOrderStatus.status == 'FILLED') {
+      sellQty++;
+      console.log(`Sell order ${orderIdSell} filled`);
+    } else {
+      await api.cancelOrder(symbol, orderIdSell, null);
+      console.log(`Sell order ${orderIdSell} cancelled`); 
+    } 
   }
-  else {
-    //console.log('Orders: ', orders);
-    console.log(`Cancel ${orders.length} open orders`);
-    orders.forEach(async function (order) {
-      console.log(`Order: ${order.orderId} Market: ${order.symbol} Side: ${order.side}`);
-      await api.cancelOrder(symbol, order.orderId, null);
-      if (tickQty !== 1) {
-        if (order.side === 'SELL') sellQty--;
-        else buyQty--;
-      }
-    });
-  };
+
+  if (orderIdBuy !== '') {
+    const buyOrderStatus = await api.queryOrder(symbol, orderIdBuy, null, null);
+    if (buyOrderStatus.status == 'FILLED') {
+      buyQty++;
+      console.log(`Buy order ${orderIdBuy} filled`);
+    } else {
+      await api.cancelOrder(symbol, orderIdBuy, null);
+      console.log(`Buy order ${orderIdBuy} cancelled`); 
+    } 
+  }
 
   const marketPrice = await api.averagePrice(symbol);
 
@@ -76,10 +83,11 @@ const tick = async (config) => {
 
   const sellOrder = await api.newOrder(symbol, sellVolume, sellPrice, 'SELL', 'LIMIT', 'GTC');
   console.log(`Limit sell order ${sellVolume} @ ${sellPrice}, Id: ${sellOrder.orderId}, Notional value = ${(sellVolume * sellPrice).toFixed(2)}`);
-  sellQty++;
+  orderIdSell = sellOrder.orderId;
+
   const buyOrder = await api.newOrder(symbol, buyVolume, buyPrice, 'BUY', 'LIMIT', 'GTC');
   console.log(`Limit buy order ${buyVolume} @ ${buyPrice}, Id: ${buyOrder.orderId}, Notional value = ${(buyVolume * buyPrice).toFixed(2)}`);
-  buyQty++;
+  orderIdBuy = buyOrder.orderId;
 
 };
 
